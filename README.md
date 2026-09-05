@@ -1,23 +1,26 @@
 # microCMS
 
-PHP + MySQL admin for the personal site. Drop this folder inside the site root (`website/microCMS` or `W:\jpromanonet\microCMS`), edit `.env`, done.
+Lightweight PHP + MySQL CMS for a static-style PHP site: edit catalogs, home copy, settings, and create extra pages without re-uploading the whole site over FTP.
 
-## Deploy
+## Setup
 
-1. Copy `microCMS/` into the site directory (next to `index.php` and `includes/`).
-2. Copy `.env.example` → `.env` and set DB credentials / admin password.
-3. Open `/microCMS/admin/` — tables and seed run automatically on first load.
-4. Deploy the updated site PHP (`includes/bootstrap.php`, `includes/helpers.php`, `index.php`, catalog sidebars) so the front reads from MySQL.
+1. Place this folder inside the site root (next to `index.php` / `includes/`), or keep it as a sibling repo — paths are auto-detected.
+2. Copy `.env.example` to `.env` and fill in your MySQL credentials and initial admin user.
+3. Open `/microCMS/admin/` in the browser. On first load it creates the database tables and seeds content from the site’s JSON files (if present).
+4. Make sure the public site includes the microCMS bridge (`includes/bootstrap.php` / helpers) so pages read from MySQL.
 
-Default login comes from `.env`: `ADMIN_USER` / `ADMIN_PASS` (only created if `users` is empty).
+The initial admin account is created only when the `users` table is empty (values from `.env`). Change it later from the Account screen in the admin — editing `.env` afterwards does not update an existing user.
 
-## Local sibling layout
-
-If this repo sits next to `website/` (not inside it), leave `SITE_ROOT` empty — paths auto-detect `../website`. The site bootstrap also finds `../microCMS/bootstrap.php`.
+Also deploy the `custom_page/` front controller with the site; custom pages are served as `/custom_page/?slug=…`.
 
 ## What it manages
 
-- Settings: email, phone, socials, tagline, GA, Medium
-- Home copy (hero, about, signals, skills, contact) — sections cannot be deleted
-- Cards for Portfolio, Books, Writing, Ventures, News, Resumes
-- Custom catalog pages (Ventures template) inserted in the navbar before Resumes
+- Site settings (contact, social links, tagline, analytics, Medium)
+- Home copy (hero, about, signals, skills, contact) — sections stay fixed; only text is editable
+- Elements for Portfolio, Books, Writing, Ventures, News, Resumes
+- Custom catalog pages (Ventures-style template), shown in the nav before Resumes and in the home “numbers” stats
+
+## Notes
+
+- Uploaded media falls back to MySQL storage if the web user cannot write into `assets/media/`
+- Keep `.env` out of public repos; the CMS blocks direct web access to it when Apache allows `.htaccess`
