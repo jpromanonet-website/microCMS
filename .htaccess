@@ -1,0 +1,14 @@
+# Deny direct access to env and PHP sources
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+RedirectMatch 404 /\.env$
+
+# Block raw source / config paths
+RewriteEngine On
+RewriteRule ^(src|sql)/ - [F,L]
