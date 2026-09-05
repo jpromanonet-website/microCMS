@@ -113,6 +113,42 @@ final class Content
     }
 
     /**
+     * Home "Myself in numbers" stats for custom (non-system) pages.
+     *
+     * @return list<array{label:string,count:int,path:string,tone:string}>
+     */
+    public static function customPageStats(): array
+    {
+        $tones = ['violet', 'rose', 'cyan', 'lime', 'indigo', 'orange', 'pink', 'mint'];
+        $out = [];
+
+        foreach (self::pages(false) as $page) {
+            if ((int) $page['is_system'] === 1) {
+                continue;
+            }
+
+            $slug = (string) $page['slug'];
+            $title = (string) $page['title'];
+            $noun = trim((string) ($page['noun'] ?? ''));
+            $count = count(self::cardsForPage((int) $page['id']));
+            $tone = $tones[abs(crc32($slug)) % count($tones)];
+
+            $label = $noun !== '' && $noun !== 'items'
+                ? ucfirst($noun)
+                : $title;
+
+            $out[] = [
+                'label' => $label,
+                'count' => $count,
+                'path' => '/c/?slug=' . rawurlencode($slug),
+                'tone' => $tone,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Build public nav: system pages (except resumes) + custom pages + resumes + teaching dropdown.
      *
      * @return list<array<string, mixed>>
