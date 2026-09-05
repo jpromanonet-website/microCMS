@@ -155,6 +155,7 @@ cms_layout_start('Dashboard', 'dashboard');
 
 <section class="panel">
     <h2>Pages</h2>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -194,5 +195,6 @@ cms_layout_start('Dashboard', 'dashboard');
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </section>
 <?php cms_layout_end(); ?>

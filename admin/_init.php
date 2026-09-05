@@ -61,6 +61,11 @@ function cms_icon_logout(): string
     return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 7V5.8A1.8 1.8 0 0 1 11.8 4h6.4A1.8 1.8 0 0 1 20 5.8v12.4A1.8 1.8 0 0 1 18.2 20h-6.4A1.8 1.8 0 0 1 10 18.2V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 12h10M8 8l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 }
 
+function cms_icon_menu(): string
+{
+    return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+}
+
 function cms_layout_start(string $title, string $active = ''): void
 {
     $user = Auth::username();
@@ -91,7 +96,7 @@ function cms_layout_start(string $title, string $active = ''): void
 <body>
 <header class="topbar">
     <a class="topbar__brand" href="index.php">microCMS</a>
-    <nav class="topbar__nav">
+    <nav class="topbar__nav" id="admin-nav">
         <a class="<?= $active === 'dashboard' ? 'is-active' : '' ?>" href="index.php">Dashboard</a>
         <a class="<?= $active === 'settings' ? 'is-active' : '' ?>" href="settings.php">Settings</a>
         <a class="<?= $active === 'home' ? 'is-active' : '' ?>" href="home.php">Home</a>
@@ -114,6 +119,14 @@ function cms_layout_start(string $title, string $active = ''): void
             </svg>
         </button>
         <a class="icon-btn" href="logout.php" title="Logout" aria-label="Logout"><?= cms_icon_logout() ?></a>
+        <button
+            type="button"
+            class="icon-btn topbar__menu-btn"
+            id="nav-toggle"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="admin-nav"
+        ><?= cms_icon_menu() ?></button>
     </div>
 </header>
 <main class="wrap">

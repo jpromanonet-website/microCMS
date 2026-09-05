@@ -107,6 +107,7 @@ cms_layout_start((string) $page['title'], 'pages');
 
 <section class="panel">
     <h2>Elements (<?= count($cards) ?>)</h2>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -145,5 +146,6 @@ cms_layout_start((string) $page['title'], 'pages');
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </section>
 <?php cms_layout_end(); ?>

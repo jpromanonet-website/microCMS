@@ -20,6 +20,7 @@ cms_layout_start('Pages', 'pages');
 </section>
 
 <section class="panel">
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -49,5 +50,6 @@ cms_layout_start('Pages', 'pages');
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </section>
 <?php cms_layout_end(); ?>

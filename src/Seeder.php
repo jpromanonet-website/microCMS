@@ -12,7 +12,7 @@ final class Seeder
         self::seedAdmin($pdo);
         self::seedSettings($pdo);
         self::seedHome($pdo);
-        self::seedPagesAndCards($pdo, $siteRoot);
+        self::seedPagesAndCards($pdo);
     }
 
     private static function seedAdmin(\PDO $pdo): void
@@ -107,7 +107,7 @@ final class Seeder
         }
     }
 
-    private static function seedPagesAndCards(\PDO $pdo, string $siteRoot): void
+    private static function seedPagesAndCards(\PDO $pdo): void
     {
         $count = (int) $pdo->query('SELECT COUNT(*) FROM pages')->fetchColumn();
         if ($count > 0) {
@@ -123,7 +123,6 @@ final class Seeder
                 'noun' => 'projects',
                 'card_type' => 'project',
                 'nav_order' => 10,
-                'json' => 'projects',
             ],
             [
                 'slug' => 'books',
@@ -133,7 +132,6 @@ final class Seeder
                 'noun' => 'books',
                 'card_type' => 'book',
                 'nav_order' => 20,
-                'json' => 'books',
             ],
             [
                 'slug' => 'writing',
@@ -143,7 +141,6 @@ final class Seeder
                 'noun' => 'articles',
                 'card_type' => 'writing',
                 'nav_order' => 30,
-                'json' => 'writing',
             ],
             [
                 'slug' => 'ventures',
@@ -153,7 +150,6 @@ final class Seeder
                 'noun' => 'ventures',
                 'card_type' => 'venture',
                 'nav_order' => 40,
-                'json' => 'ventures',
             ],
             [
                 'slug' => 'news',
@@ -163,7 +159,6 @@ final class Seeder
                 'noun' => 'mentions',
                 'card_type' => 'news',
                 'nav_order' => 50,
-                'json' => 'news',
             ],
             [
                 'slug' => 'resumes',
@@ -173,19 +168,12 @@ final class Seeder
                 'noun' => 'resumes',
                 'card_type' => 'resume',
                 'nav_order' => 900,
-                'json' => 'resumes',
             ],
         ];
 
         $pageStmt = $pdo->prepare(
             'INSERT INTO pages (slug, title, description, eyebrow, noun, card_type, is_system, show_in_nav, nav_order)
              VALUES (?, ?, ?, ?, ?, ?, 1, 1, ?)'
-        );
-        $cardStmt = $pdo->prepare(
-            'INSERT INTO cards (
-                page_id, title, category, image_src, url, secondary_url, brief, author, status,
-                label, description, file_name, lang, sort_order
-             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
 
         foreach ($systemPages as $page) {
@@ -198,113 +186,6 @@ final class Seeder
                 $page['card_type'],
                 $page['nav_order'],
             ]);
-            $pageId = (int) $pdo->lastInsertId();
-            $items = self::readJson($siteRoot, $page['json']);
-            $order = 0;
-            foreach ($items as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-                $mapped = self::mapJsonItem($page['card_type'], $item);
-                $cardStmt->execute([
-                    $pageId,
-                    $mapped['title'],
-                    $mapped['category'],
-                    $mapped['image_src'],
-                    $mapped['url'],
-                    $mapped['secondary_url'],
-                    $mapped['brief'],
-                    $mapped['author'],
-                    $mapped['status'],
-                    $mapped['label'],
-                    $mapped['description'],
-                    $mapped['file_name'],
-                    $mapped['lang'],
-                    $order++,
-                ]);
-            }
         }
-    }
-
-    /** @return list<array<string, mixed>> */
-    private static function readJson(string $siteRoot, string $name): array
-    {
-        $file = $siteRoot . '/assets/data/' . $name . '.json';
-        if (!is_file($file)) {
-            return [];
-        }
-        $raw = file_get_contents($file);
-        if ($raw === false || $raw === '') {
-            return [];
-        }
-        if (str_starts_with($raw, "\xEF\xBB\xBF")) {
-            $raw = substr($raw, 3);
-        }
-        $data = json_decode($raw, true);
-        return is_array($data) ? $data : [];
-    }
-
-    /**
-     * @param array<string, mixed> $item
-     * @return array{
-     *   title: string, category: string, image_src: string, url: string, secondary_url: string,
-     *   brief: ?string, author: string, status: string, label: string, description: ?string,
-     *   file_name: string, lang: string
-     * }
-     */
-    private static function mapJsonItem(string $cardType, array $item): array
-    {
-        $title = (string) ($item['title'] ?? 'Untitled');
-        $category = (string) ($item['category'] ?? '');
-        $image = (string) ($item['imageSrc'] ?? '');
-        $url = '';
-        $secondary = '';
-        $brief = null;
-        $author = '';
-        $status = '';
-        $label = '';
-        $description = null;
-        $file = '';
-        $lang = '';
-
-        switch ($cardType) {
-            case 'project':
-                $url = (string) ($item['liveUrl'] ?? '');
-                $secondary = (string) ($item['githubUrl'] ?? '');
-                break;
-            case 'book':
-                $url = (string) ($item['buyingLink'] ?? '');
-                $brief = (string) ($item['brief'] ?? '');
-                $author = (string) ($item['author'] ?? '');
-                $status = (string) ($item['status'] ?? '');
-                break;
-            case 'writing':
-            case 'venture':
-            case 'news':
-            case 'generic':
-                $url = (string) ($item['url'] ?? '');
-                break;
-            case 'resume':
-                $file = (string) ($item['file'] ?? '');
-                $label = (string) ($item['label'] ?? '');
-                $description = (string) ($item['description'] ?? '');
-                $lang = (string) ($item['lang'] ?? '');
-                break;
-        }
-
-        return [
-            'title' => $title,
-            'category' => $category,
-            'image_src' => $image,
-            'url' => $url,
-            'secondary_url' => $secondary,
-            'brief' => $brief,
-            'author' => $author,
-            'status' => $status,
-            'label' => $label,
-            'description' => $description,
-            'file_name' => $file,
-            'lang' => $lang,
-        ];
     }
 }

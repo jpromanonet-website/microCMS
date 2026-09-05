@@ -23,6 +23,25 @@
     syncLabel();
   });
 
+  const nav = document.getElementById("admin-nav");
+  const navToggle = document.getElementById("nav-toggle");
+  const setNavOpen = (open) => {
+    document.body.classList.toggle("nav-open", open);
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+  };
+  navToggle?.addEventListener("click", () => {
+    setNavOpen(!document.body.classList.contains("nav-open"));
+  });
+  nav?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => setNavOpen(false));
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 820) setNavOpen(false);
+  });
+
   document.querySelectorAll("[data-file-drop]").forEach((drop) => {
     const input = drop.querySelector('input[type="file"]');
     const nameEl = drop.querySelector("[data-file-name]");
