@@ -140,7 +140,7 @@ final class Content
             $out[] = [
                 'label' => $label,
                 'count' => $count,
-                'path' => '/c/?slug=' . rawurlencode($slug),
+                'path' => '/custom_page/?slug=' . rawurlencode($slug),
                 'tone' => $tone,
             ];
         }
@@ -171,10 +171,10 @@ final class Content
         foreach ($beforeResumes as $page) {
             $slug = (string) $page['slug'];
             $isSystem = (int) $page['is_system'] === 1;
-            // Custom pages use /c/?slug=… because www-data cannot mkdir /{slug}/
+            // Custom pages use /custom_page/?slug=… because www-data cannot mkdir /{slug}/
             $path = $isSystem
                 ? '/' . $slug . '/'
-                : '/c/?slug=' . rawurlencode($slug);
+                : '/custom_page/?slug=' . rawurlencode($slug);
             $items[] = [
                 'label' => (string) $page['title'],
                 'path' => $path,
@@ -300,7 +300,7 @@ final class Content
     {
         $slug = self::slugify((string) $data['slug']);
         if ($slug === '' || in_array($slug, [
-            'microcms', 'admin', 'assets', 'includes', 'cache', 'tools', 'c',
+            'microcms', 'admin', 'assets', 'includes', 'cache', 'tools', 'c', 'custom_page',
             'portfolio', 'books', 'writing', 'ventures', 'news', 'resumes',
         ], true)) {
             throw new \InvalidArgumentException('Invalid slug');
