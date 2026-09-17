@@ -33,3 +33,4 @@ if (!defined('MICROCMS_SITE_ROOT')) {
 
 Migrator::migrate();
 Seeder::seedIfEmpty(MICROCMS_SITE_ROOT);
+Seeder::ensureLifestylePages(\MicroCMS\Database::pdo());

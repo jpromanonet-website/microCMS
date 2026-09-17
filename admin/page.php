@@ -123,6 +123,14 @@ cms_layout_start((string) $page['title'], 'pages');
         <?php endif; ?>
         <?php foreach ($cards as $card):
             $img = (string) $card['image_src'];
+            $meta = (string) $card['category'];
+            if ($type === 'sport') {
+                $meta = (($card['status'] ?? '') === 'km' ? 'Km · ' : 'Exercise · ') . (string) ($card['brief'] ?? '0');
+            } elseif ($type === 'music' || $type === 'podcast') {
+                $meta = (string) ($card['url'] ?? '');
+            } elseif ($type === 'language') {
+                $meta = (string) ($card['category'] ?? '');
+            }
         ?>
             <tr>
                 <td>
@@ -131,7 +139,7 @@ cms_layout_start((string) $page['title'], 'pages');
                     <?php endif; ?>
                 </td>
                 <td><?= cms_e((string) $card['title']) ?></td>
-                <td><?= cms_e((string) $card['category']) ?></td>
+                <td><?= cms_e($meta) ?></td>
                 <td style="white-space:nowrap">
                     <a href="card-edit.php?page_id=<?= $id ?>&id=<?= (int) $card['id'] ?>">Edit</a>
                     ·

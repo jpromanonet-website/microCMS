@@ -46,7 +46,23 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         'lang' => $_POST['lang'] ?? '',
     ];
 
-    if (!empty($_FILES['image']['name'])) {
+    if ($type === 'sport') {
+        $sportKind = (string) ($_POST['sport_kind'] ?? 'exercise');
+        if ($sportKind === 'km') {
+            $data['status'] = 'km';
+            $data['title'] = trim((string) ($_POST['title'] ?? '')) ?: 'Kilometers ran';
+            $data['brief'] = (string) max(0, (int) ($_POST['brief'] ?? 0));
+        } else {
+            $data['status'] = 'exercise';
+            $data['brief'] = (string) max(0, (int) ($_POST['brief'] ?? 0));
+        }
+    }
+
+    if ($type === 'music') {
+        $data['image_src'] = '';
+    }
+
+    if (!empty($_FILES['image']['name']) && $type !== 'music' && $type !== 'resume') {
         $upload = cms_handle_upload('image', $mediaSection);
         if ($upload['ok']) {
             $data['image_src'] = $upload['filename'];
@@ -68,6 +84,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         }
     }
 
+    // Keep a single km tracker card on Sports
+    if ($type === 'sport' && ($data['status'] ?? '') === 'km' && !$cardId) {
+        foreach (Content::cardsForPage($pageId) as $existing) {
+            if (($existing['status'] ?? '') === 'km') {
+                $cardId = (int) $existing['id'];
+                break;
+            }
+        }
+    }
+
     $savedId = Content::saveCard($cardId ?: null, $pageId, $data);
     cms_flash($cardId ? 'Element updated.' : 'Element created.');
     header('Location: card-edit.php?page_id=' . $pageId . '&id=' . $savedId);
@@ -82,12 +108,14 @@ $c = $card ?? [
     'secondary_url' => '',
     'brief' => '',
     'author' => '',
-    'status' => '',
+    'status' => $type === 'sport' ? 'exercise' : '',
     'label' => '',
     'description' => '',
     'file_name' => '',
     'lang' => '',
 ];
+
+$sportKind = (($c['status'] ?? '') === 'km') ? 'km' : 'exercise';
 
 cms_layout_start(($cardId ? 'Edit' : 'New') . ' element', 'pages');
 ?>
@@ -98,15 +126,85 @@ cms_layout_start(($cardId ? 'Edit' : 'New') . ' element', 'pages');
         <input type="hidden" name="csrf" value="<?= cms_e(Auth::csrfToken()) ?>" />
         <input type="hidden" name="page_id" value="<?= $pageId ?>" />
         <div class="form-grid">
-            <label class="full">Title
-                <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
-            </label>
 
-            <?php if ($type !== 'resume'): ?>
+            <?php if ($type === 'language'): ?>
+                <label>Language
+                    <input type="text" name="category" value="<?= cms_e((string) $c['category']) ?>" placeholder="Spanish, English, Mandarin…" required />
+                </label>
+                <label>Certificate / level title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
+                <label class="full">Certificate link (optional)
+                    <input type="url" name="url" value="<?= cms_e((string) $c['url']) ?>" placeholder="https://…" />
+                </label>
+                <p class="full hint">Upload a photo of the certificate, or leave empty and only keep the title/link.</p>
+
+            <?php elseif ($type === 'music'): ?>
+                <label class="full">Track title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
+                <label class="full">SoundCloud link
+                    <input type="url" name="url" value="<?= cms_e((string) $c['url']) ?>" placeholder="https://soundcloud.com/…" required />
+                </label>
+                <p class="full hint">No cover image — the site shows the track title and a SoundCloud button.</p>
+
+            <?php elseif ($type === 'podcast'): ?>
+                <label class="full">Chapter title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
+                <label class="full">Spotify link
+                    <input type="url" name="url" value="<?= cms_e((string) $c['url']) ?>" placeholder="https://open.spotify.com/…" required />
+                </label>
+                <p class="full hint">Same layout as Music, plus a cover image and Spotify button.</p>
+
+            <?php elseif ($type === 'sport'): ?>
+                <label>Type
+                    <select name="sport_kind" id="sport_kind">
+                        <option value="km" <?= $sportKind === 'km' ? 'selected' : '' ?>>Kilometers ran</option>
+                        <option value="exercise" <?= $sportKind === 'exercise' ? 'selected' : '' ?>>Exercise</option>
+                    </select>
+                </label>
+                <label class="full">Title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" placeholder="Kilometers ran / Push-ups" required />
+                </label>
+                <label>Count / kilometers
+                    <input type="number" name="brief" min="0" step="1" value="<?= cms_e((string) (($c['brief'] ?? '') !== '' ? $c['brief'] : '0')) ?>" required />
+                </label>
+                <label class="full">Note (optional, exercises)
+                    <textarea name="description"><?= cms_e((string) ($c['description'] ?? '')) ?></textarea>
+                </label>
+                <p class="full hint">There is one “Kilometers ran” tracker (starts at 0). Exercises are separate cards with their own counts.</p>
+
+            <?php elseif ($type === 'recipe'): ?>
+                <label class="full">Recipe name
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
+                <label class="full">Recipe
+                    <textarea name="description" rows="10" placeholder="Ingredients and steps…"><?= cms_e((string) ($c['description'] ?? $c['brief'] ?? '')) ?></textarea>
+                </label>
+
+            <?php elseif ($type === 'art'): ?>
+                <label class="full">Title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
+                <label>Category / filter
+                    <input type="text" name="category" value="<?= cms_e((string) $c['category']) ?>" />
+                </label>
+                <label class="full">Link (optional)
+                    <input type="url" name="url" value="<?= cms_e((string) $c['url']) ?>" placeholder="https://…" />
+                </label>
+
+            <?php elseif ($type !== 'resume'): ?>
+                <label class="full">Title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
                 <label class="full">Category / filter
                     <input type="text" name="category" value="<?= cms_e((string) $c['category']) ?>" />
                 </label>
             <?php else: ?>
+                <label class="full">Title
+                    <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
+                </label>
                 <label>Language code
                     <input type="text" name="lang" value="<?= cms_e((string) $c['lang']) ?>" placeholder="es" />
                 </label>
@@ -153,15 +251,15 @@ cms_layout_start(($cardId ? 'Edit' : 'New') . ' element', 'pages');
                         <input type="file" name="pdf" accept="application/pdf" />
                     </div>
                 </div>
-            <?php else: ?>
+            <?php elseif (!in_array($type, ['language', 'music', 'podcast', 'sport', 'recipe', 'art'], true)): ?>
                 <label class="full">URL
                     <input type="text" name="url" value="<?= cms_e((string) $c['url']) ?>" placeholder="https://…" />
                 </label>
             <?php endif; ?>
 
-            <?php if ($type !== 'resume'): ?>
+            <?php if (!in_array($type, ['resume', 'music', 'sport'], true)): ?>
                 <div class="full file-field">
-                    <span class="file-field__label">Upload image</span>
+                    <span class="file-field__label">Upload image<?= in_array($type, ['language', 'podcast'], true) ? ($type === 'language' ? ' (optional)' : '') : '' ?></span>
                     <div class="file-drop" data-file-drop>
                         <div class="file-drop__icon" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>

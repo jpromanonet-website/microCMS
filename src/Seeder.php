@@ -13,6 +13,111 @@ final class Seeder
         self::seedSettings($pdo);
         self::seedHome($pdo);
         self::seedPagesAndCards($pdo);
+        self::ensureLifestylePages($pdo);
+    }
+
+    /**
+     * Art / Languages / Music / Sports / Cooking — always ensure they exist (safe on existing DBs).
+     */
+    public static function ensureLifestylePages(\PDO $pdo): void
+    {
+        $pages = [
+            [
+                'slug' => 'art',
+                'title' => 'My Art',
+                'description' => 'Artwork and visual pieces by Juan P. Romano.',
+                'eyebrow' => 'Gallery',
+                'noun' => 'artwork to show',
+                'card_type' => 'art',
+                'nav_order' => 910,
+            ],
+            [
+                'slug' => 'languages',
+                'title' => 'Languages',
+                'description' => 'Languages I speak — with certificates and proof.',
+                'eyebrow' => 'Polyglot',
+                'noun' => 'languages that I\'m speaking',
+                'card_type' => 'language',
+                'nav_order' => 920,
+            ],
+            [
+                'slug' => 'music',
+                'title' => 'My Music',
+                'description' => 'Tracks and SoundCloud links.',
+                'eyebrow' => 'Sound',
+                'noun' => 'songs published',
+                'card_type' => 'music',
+                'nav_order' => 930,
+            ],
+            [
+                'slug' => 'podcasts',
+                'title' => 'Podcasts',
+                'description' => 'Podcast chapters and Spotify links.',
+                'eyebrow' => 'Audio',
+                'noun' => 'chapters recorded',
+                'card_type' => 'podcast',
+                'nav_order' => 935,
+            ],
+            [
+                'slug' => 'sports',
+                'title' => 'Sports',
+                'description' => 'Running kilometers and training exercises.',
+                'eyebrow' => 'Training',
+                'noun' => 'Km ran',
+                'card_type' => 'sport',
+                'nav_order' => 940,
+            ],
+            [
+                'slug' => 'cooking',
+                'title' => 'Cooking',
+                'description' => 'Recipes I have cooked.',
+                'eyebrow' => 'Kitchen',
+                'noun' => 'recipes cooked',
+                'card_type' => 'recipe',
+                'nav_order' => 950,
+            ],
+        ];
+
+        $insert = $pdo->prepare(
+            'INSERT INTO pages (slug, title, description, eyebrow, noun, card_type, is_system, show_in_nav, nav_order)
+             VALUES (?, ?, ?, ?, ?, ?, 1, 0, ?)'
+        );
+        $find = $pdo->prepare('SELECT id FROM pages WHERE slug = ? LIMIT 1');
+
+        foreach ($pages as $page) {
+            $find->execute([$page['slug']]);
+            $existingId = $find->fetchColumn();
+            if ($existingId) {
+                // Keep editable copy — only lock system flags / type for lifestyle pages
+                $pdo->prepare(
+                    'UPDATE pages SET is_system = 1, show_in_nav = 0, card_type = ?, nav_order = ? WHERE id = ?'
+                )->execute([$page['card_type'], $page['nav_order'], (int) $existingId]);
+                continue;
+            }
+
+            $insert->execute([
+                $page['slug'],
+                $page['title'],
+                $page['description'],
+                $page['eyebrow'],
+                $page['noun'],
+                $page['card_type'],
+                $page['nav_order'],
+            ]);
+        }
+
+        $find->execute(['sports']);
+        $sportsId = (int) ($find->fetchColumn() ?: 0);
+        if ($sportsId > 0) {
+            $kmCheck = $pdo->prepare("SELECT id FROM cards WHERE page_id = ? AND status = 'km' LIMIT 1");
+            $kmCheck->execute([$sportsId]);
+            if (!$kmCheck->fetchColumn()) {
+                $pdo->prepare(
+                    'INSERT INTO cards (page_id, title, status, brief, sort_order)
+                     VALUES (?, ?, ?, ?, 0)'
+                )->execute([$sportsId, 'Kilometers ran', 'km', '0']);
+            }
+        }
     }
 
     private static function seedAdmin(\PDO $pdo): void

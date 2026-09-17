@@ -158,6 +158,14 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 .panel h1, .panel h2 { margin: 0 0 0.75rem; letter-spacing: -0.02em; }
+.panel-subtitle {
+  margin: 0 0 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent, #6babf5);
+}
 .panel p.lead { margin: 0 0 1rem; color: var(--muted); }
 
 .grid-cards {

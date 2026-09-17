@@ -120,14 +120,18 @@ final class Content
     public static function customPageStats(): array
     {
         $tones = ['violet', 'rose', 'cyan', 'lime', 'indigo', 'orange', 'pink', 'mint'];
+        $lifestyle = self::lifestyleSlugs();
         $out = [];
 
         foreach (self::pages(false) as $page) {
             if ((int) $page['is_system'] === 1) {
                 continue;
             }
-
             $slug = (string) $page['slug'];
+            if (in_array($slug, $lifestyle, true)) {
+                continue;
+            }
+
             $title = (string) $page['title'];
             $noun = trim((string) ($page['noun'] ?? ''));
             $count = count(self::cardsForPage((int) $page['id']));
@@ -148,19 +152,85 @@ final class Content
         return $out;
     }
 
+    /** @return list<string> */
+    public static function lifestyleSlugs(): array
+    {
+        return ['art', 'languages', 'music', 'podcasts', 'sports', 'cooking'];
+    }
+
     /**
-     * Build public nav: system pages (except resumes) + custom pages + resumes + teaching dropdown.
+     * Stats for lifestyle pages shown on the home counters.
+     *
+     * @return list<array{label:string,count:int,path:string,tone:string}>
+     */
+    public static function lifestyleStats(): array
+    {
+        $defs = [
+            'art' => ['label' => 'Artwork to show', 'tone' => 'rose', 'mode' => 'count'],
+            'languages' => ['label' => 'Languages that I\'m speaking', 'tone' => 'cyan', 'mode' => 'languages'],
+            'music' => ['label' => 'Songs published', 'tone' => 'violet', 'mode' => 'count'],
+            'podcasts' => ['label' => 'Chapters recorded', 'tone' => 'indigo', 'mode' => 'count'],
+            'sports' => ['label' => 'Km ran', 'tone' => 'orange', 'mode' => 'km'],
+            'cooking' => ['label' => 'Recipes cooked', 'tone' => 'mint', 'mode' => 'count'],
+        ];
+
+        $out = [];
+        foreach ($defs as $slug => $meta) {
+            $page = self::pageBySlug($slug);
+            if (!$page) {
+                continue;
+            }
+            $cards = self::cardsForPage((int) $page['id']);
+            $count = 0;
+            if ($meta['mode'] === 'km') {
+                foreach ($cards as $card) {
+                    if (($card['status'] ?? '') === 'km') {
+                        $count = (int) preg_replace('/[^\d]/', '', (string) ($card['brief'] ?? '0'));
+                        break;
+                    }
+                }
+            } elseif ($meta['mode'] === 'languages') {
+                $langs = [];
+                foreach ($cards as $card) {
+                    $lang = trim((string) ($card['category'] ?? ''));
+                    if ($lang !== '') {
+                        $langs[strtolower($lang)] = true;
+                    }
+                }
+                $count = count($langs);
+            } else {
+                $count = count($cards);
+            }
+
+            $out[] = [
+                'label' => $meta['label'],
+                'count' => $count,
+                'path' => '/' . $slug . '/',
+                'tone' => $meta['tone'],
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Build public nav: system pages (except resumes) + custom pages + resumes + teaching + more.
      *
      * @return list<array<string, mixed>>
      */
     public static function navItems(): array
     {
         $pages = self::pages(true);
+        $lifestyle = self::lifestyleSlugs();
         $beforeResumes = [];
         $resumes = null;
 
         foreach ($pages as $page) {
-            if ($page['slug'] === 'resumes') {
+            $slug = (string) $page['slug'];
+            if (in_array($slug, $lifestyle, true)) {
+                continue;
+            }
+            if ($slug === 'resumes') {
                 $resumes = $page;
                 continue;
             }
@@ -171,7 +241,6 @@ final class Content
         foreach ($beforeResumes as $page) {
             $slug = (string) $page['slug'];
             $isSystem = (int) $page['is_system'] === 1;
-            // Custom pages use /custom_page/?slug=… because www-data cannot mkdir /{slug}/
             $path = $isSystem
                 ? '/' . $slug . '/'
                 : '/custom_page/?slug=' . rawurlencode($slug);
@@ -198,6 +267,31 @@ final class Content
                 ['label' => 'Learning to Code', 'url' => 'https://learningtocodeforfree.vercel.app/'],
             ],
         ];
+
+        $moreChildren = [];
+        foreach ([
+            'art' => 'My Art',
+            'languages' => 'Languages',
+            'music' => 'My Music',
+            'podcasts' => 'Podcasts',
+            'sports' => 'Sports',
+            'cooking' => 'Cooking',
+        ] as $slug => $label) {
+            if (self::pageBySlug($slug)) {
+                $moreChildren[] = [
+                    'label' => $label,
+                    'path' => '/' . $slug . '/',
+                    'key' => $slug,
+                ];
+            }
+        }
+        if ($moreChildren !== []) {
+            $items[] = [
+                'label' => 'Hobbies',
+                'key' => 'hobbies',
+                'children' => $moreChildren,
+            ];
+        }
 
         return $items;
     }
@@ -302,6 +396,7 @@ final class Content
         if ($slug === '' || in_array($slug, [
             'microcms', 'admin', 'assets', 'includes', 'cache', 'tools', 'c', 'custom_page',
             'portfolio', 'books', 'writing', 'ventures', 'news', 'resumes',
+            'art', 'languages', 'music', 'podcasts', 'sports', 'cooking',
         ], true)) {
             throw new \InvalidArgumentException('Invalid slug');
         }
