@@ -80,28 +80,32 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                         <?= e($langName) ?>
                         <span class="lang-section__count">(<?= $certCount ?> <?= $certCount === 1 ? 'certificate' : 'certificates' ?>)</span>
                     </h2>
-                    <div class="lang-section__grid">
+                    <div class="catalog-grid">
                         <?php foreach ($langCards as $card):
                             $title = (string) ($card['title'] ?? 'Certificate');
                             $image = (string) ($card['image_src'] ?? '');
                             $link = (string) ($card['url'] ?? '');
+                            $imgSrc = $image !== '' ? media_url($mediaSection, $image) : '';
                         ?>
-                            <article class="lang-cert">
+                            <article class="catalog-item">
                                 <div
-                                    class="lang-cert__media<?= $image !== '' ? ' catalog-item__media--zoomable' : '' ?>"
-                                    <?= $image !== '' ? lightbox_data_attrs(media_url($mediaSection, $image), $title, $link, '', 'View certificate') : '' ?>
+                                    class="catalog-item__media<?= $imgSrc !== '' ? ' catalog-item__media--zoomable' : '' ?>"
+                                    <?= $imgSrc !== '' ? lightbox_data_attrs($imgSrc, $title, $link, '', 'View certificate') : '' ?>
                                 >
-                                    <?php if ($image !== ''): ?>
-                                        <img src="<?= e(media_url($mediaSection, $image)) ?>" alt="<?= e($title) ?>" loading="lazy" />
+                                    <?php if ($imgSrc !== ''): ?>
+                                        <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" loading="lazy" />
                                     <?php else: ?>
-                                        <div class="lang-cert__placeholder" aria-hidden="true"><?= e(substr($langName, 0, 1)) ?></div>
+                                        <div class="catalog-item__placeholder" aria-hidden="true"><?= e(strtoupper(substr($langName, 0, 1))) ?></div>
                                     <?php endif; ?>
                                 </div>
-                                <div class="lang-cert__body">
-                                    <h3 class="lang-cert__title"><?= e($title) ?></h3>
-                                    <?php if ($link !== '' && $link !== '#'): ?>
-                                        <a class="btn btn--soft" href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">View certificate</a>
-                                    <?php endif; ?>
+                                <div class="catalog-item__body">
+                                    <span class="catalog-item__meta"><?= e($langName) ?></span>
+                                    <h2 class="catalog-item__title"><?= e($title) ?></h2>
+                                    <div class="catalog-item__actions">
+                                        <?php if ($link !== '' && $link !== '#'): ?>
+                                            <a href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">View certificate</a>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </article>
                         <?php endforeach; ?>
@@ -111,58 +115,63 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
 
         <?php elseif ($cardType === 'music'): ?>
             <p class="catalog-count"><?= count($cards) ?> <?= e($noun) ?></p>
-            <div class="music-list">
-                <?php if ($cards === []): ?>
-                    <p class="catalog-empty">No songs yet. Add SoundCloud links from the CMS.</p>
-                <?php endif; ?>
+            <?php if ($cards === []): ?>
+                <p class="catalog-empty">No songs yet. Add SoundCloud links from the CMS.</p>
+            <?php endif; ?>
+            <div class="catalog-grid">
                 <?php foreach ($cards as $card):
                     $title = (string) ($card['title'] ?? 'Untitled track');
                     $link = (string) ($card['url'] ?? '');
                 ?>
-                    <article class="music-row reveal">
-                        <div class="music-row__body">
-                            <span class="music-row__meta">Track</span>
-                            <h2 class="music-row__title"><?= e($title) ?></h2>
+                    <article class="catalog-item">
+                        <div class="catalog-item__media catalog-item__media--icon" aria-hidden="true">
+                            <span class="catalog-item__icon">♪</span>
                         </div>
-                        <?php if ($link !== '' && $link !== '#'): ?>
-                            <a class="btn btn--soft" href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">Open on SoundCloud</a>
-                        <?php else: ?>
-                            <span class="btn btn--ghost is-disabled" aria-disabled="true">Link soon</span>
-                        <?php endif; ?>
+                        <div class="catalog-item__body">
+                            <span class="catalog-item__meta">Track</span>
+                            <h2 class="catalog-item__title"><?= e($title) ?></h2>
+                            <div class="catalog-item__actions">
+                                <?php if ($link !== '' && $link !== '#'): ?>
+                                    <a href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </article>
                 <?php endforeach; ?>
             </div>
 
         <?php elseif ($cardType === 'podcast'): ?>
             <p class="catalog-count"><?= count($cards) ?> <?= e($noun) ?></p>
-            <div class="music-list">
-                <?php if ($cards === []): ?>
-                    <p class="catalog-empty">No podcast chapters yet. Add Spotify links from the CMS.</p>
-                <?php endif; ?>
+            <?php if ($cards === []): ?>
+                <p class="catalog-empty">No podcast chapters yet. Add Spotify links from the CMS.</p>
+            <?php endif; ?>
+            <div class="catalog-grid">
                 <?php foreach ($cards as $card):
                     $title = (string) ($card['title'] ?? 'Untitled chapter');
                     $link = (string) ($card['url'] ?? '');
                     $image = (string) ($card['image_src'] ?? '');
                     $imgSrc = $image !== '' ? media_url($mediaSection, $image) : '';
                 ?>
-                    <article class="music-row music-row--podcast reveal">
-                        <?php if ($imgSrc !== ''): ?>
-                            <div
-                                class="music-row__media catalog-item__media--zoomable"
-                                <?= lightbox_data_attrs($imgSrc, $title, $link, '', 'Open on Spotify') ?>
-                            >
+                    <article class="catalog-item">
+                        <div
+                            class="catalog-item__media<?= $imgSrc !== '' ? ' catalog-item__media--zoomable' : ' catalog-item__media--icon' ?>"
+                            <?= $imgSrc !== '' ? lightbox_data_attrs($imgSrc, $title, $link, '', 'Open on Spotify') : '' ?>
+                        >
+                            <?php if ($imgSrc !== ''): ?>
                                 <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" loading="lazy" />
-                            </div>
-                        <?php endif; ?>
-                        <div class="music-row__body">
-                            <span class="music-row__meta">Chapter</span>
-                            <h2 class="music-row__title"><?= e($title) ?></h2>
+                            <?php else: ?>
+                                <span class="catalog-item__icon">▶</span>
+                            <?php endif; ?>
                         </div>
-                        <?php if ($link !== '' && $link !== '#'): ?>
-                            <a class="btn btn--soft" href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">Open on Spotify</a>
-                        <?php else: ?>
-                            <span class="btn btn--ghost is-disabled" aria-disabled="true">Link soon</span>
-                        <?php endif; ?>
+                        <div class="catalog-item__body">
+                            <span class="catalog-item__meta">Chapter</span>
+                            <h2 class="catalog-item__title"><?= e($title) ?></h2>
+                            <div class="catalog-item__actions">
+                                <?php if ($link !== '' && $link !== '#'): ?>
+                                    <a href="<?= e($link) ?>" target="_blank" rel="noopener noreferrer">Spotify</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </article>
                 <?php endforeach; ?>
             </div>
@@ -192,15 +201,15 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                 <?php if ($exercises === []): ?>
                     <p class="catalog-empty">No exercises yet. Add them from the CMS.</p>
                 <?php endif; ?>
-                <div class="catalog-grid catalog-grid--list">
+                <div class="catalog-grid">
                     <?php foreach ($exercises as $card):
                         $title = (string) ($card['title'] ?? 'Exercise');
                         $count = (int) preg_replace('/[^\d]/', '', (string) ($card['brief'] ?? '0'));
                         $note = (string) ($card['description'] ?? '');
                     ?>
-                        <article class="catalog-item catalog-item--horizontal sport-exercise reveal">
-                            <div class="sport-exercise__count" aria-label="<?= $count ?> completed">
-                                <span><?= $count ?></span>
+                        <article class="catalog-item">
+                            <div class="catalog-item__media catalog-item__media--icon" aria-hidden="true">
+                                <span class="catalog-item__icon catalog-item__icon--count"><?= $count ?></span>
                             </div>
                             <div class="catalog-item__body">
                                 <span class="catalog-item__meta">Exercise</span>
@@ -216,22 +225,23 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
 
         <?php elseif ($cardType === 'recipe'): ?>
             <p class="catalog-count"><?= count($cards) ?> <?= e($noun) ?></p>
-            <div class="catalog-grid catalog-grid--list">
-                <?php if ($cards === []): ?>
-                    <p class="catalog-empty">No recipes yet. Add them from the CMS.</p>
-                <?php endif; ?>
+            <?php if ($cards === []): ?>
+                <p class="catalog-empty">No recipes yet. Add them from the CMS.</p>
+            <?php endif; ?>
+            <div class="catalog-grid">
                 <?php foreach ($cards as $card):
                     $title = (string) ($card['title'] ?? 'Recipe');
                     $image = (string) ($card['image_src'] ?? '');
                     $recipe = (string) (($card['description'] ?? '') ?: ($card['brief'] ?? ''));
+                    $imgSrc = $image !== '' ? media_url($mediaSection, $image) : '';
                 ?>
-                    <article class="catalog-item catalog-item--horizontal recipe-card reveal">
+                    <article class="catalog-item">
                         <div
-                            class="catalog-item__media<?= $image !== '' ? ' catalog-item__media--zoomable' : '' ?>"
-                            <?= $image !== '' ? lightbox_data_attrs(media_url($mediaSection, $image), $title) : '' ?>
+                            class="catalog-item__media<?= $imgSrc !== '' ? ' catalog-item__media--zoomable' : '' ?>"
+                            <?= $imgSrc !== '' ? lightbox_data_attrs($imgSrc, $title) : '' ?>
                         >
-                            <?php if ($image !== ''): ?>
-                                <img src="<?= e(media_url($mediaSection, $image)) ?>" alt="<?= e($title) ?>" loading="lazy" />
+                            <?php if ($imgSrc !== ''): ?>
+                                <img src="<?= e($imgSrc) ?>" alt="<?= e($title) ?>" loading="lazy" />
                             <?php endif; ?>
                         </div>
                         <div class="catalog-item__body">
