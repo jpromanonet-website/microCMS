@@ -9,11 +9,40 @@ final class Auth
 
     public static function startSession(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_name('microcms_session');
-            session_start([
-                'cookie_httponly' => true,
-                'cookie_samesite' => 'Lax',
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+        $lifetime = 86400;
+        $savePath = self::ensureSessionSavePath();
+        if ($savePath !== null) {
+            session_save_path($savePath);
+        }
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
+        ini_set('session.cookie_lifetime', (string) $lifetime);
+        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        session_name('microcms_session');
+        session_set_cookie_params([
+            'lifetime' => $lifetime,
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start([
+            'cookie_lifetime' => $lifetime,
+            'cookie_httponly' => true,
+            'cookie_samesite' => 'Lax',
+            'cookie_secure' => $secure,
+            'use_strict_mode' => true,
+            'use_only_cookies' => true,
+        ]);
+        if (session_id() !== '') {
+            setcookie(session_name(), session_id(), [
+                'expires' => time() + $lifetime,
+                'path' => '/',
+                'secure' => $secure,
+                'httponly' => true,
+                'samesite' => 'Lax',
             ]);
         }
     }
@@ -131,5 +160,29 @@ final class Auth
         self::startSession();
         $session = (string) ($_SESSION['csrf_token'] ?? '');
         return $session !== '' && is_string($token) && hash_equals($session, $token);
+    }
+
+    private static function ensureSessionSavePath(): ?string
+    {
+        $candidates = [
+            dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'sessions',
+            rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'microcms_sessions',
+        ];
+        foreach ($candidates as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+            if (!is_dir($dir)) {
+                continue;
+            }
+            @chmod($dir, 0777);
+            $probe = $dir . DIRECTORY_SEPARATOR . '.write';
+            if (@file_put_contents($probe, '1') === false) {
+                continue;
+            }
+            @unlink($probe);
+            return $dir;
+        }
+        return null;
     }
 }
