@@ -214,7 +214,8 @@ final class Content
     }
 
     /**
-     * Build public nav: system pages (except resumes) + custom pages + resumes + teaching + more.
+     * Build public nav: system pages (except resumes) + custom pages + resumes + hobbies.
+     * Teaching links are injected by the site bootstrap (hardcoded, outside CMS).
      *
      * @return list<array<string, mixed>>
      */
@@ -258,15 +259,6 @@ final class Content
                 'key' => 'resumes',
             ];
         }
-
-        $items[] = [
-            'label' => 'Teaching',
-            'key' => 'teaching',
-            'children' => [
-                ['label' => 'Learning IA', 'url' => 'https://learningiaforfree.vercel.app/'],
-                ['label' => 'Learning to Code', 'url' => 'https://learningtocodeforfree.vercel.app/'],
-            ],
-        ];
 
         $moreChildren = [];
         foreach ([
