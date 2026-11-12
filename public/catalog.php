@@ -223,24 +223,54 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                 </div>
             </div>
 
-        <?php elseif ($cardType === 'recipe'): ?>
-            <p class="catalog-count"><?= count($cards) ?> <?= e($noun) ?></p>
-            <?php if ($cards === []): ?>
+        <?php elseif ($cardType === 'recipe'):
+            $recipeItems = [];
+            foreach ($cards as $card) {
+                $ingredientLines = Content::recipeLinesFromStorage((string) ($card['brief'] ?? ''));
+                $stepLines = Content::recipeLinesFromStorage((string) ($card['description'] ?? ''));
+                $recipeItems[] = [
+                    'title' => (string) ($card['title'] ?? 'Recipe'),
+                    'category' => (string) ($card['category'] ?? ''),
+                    'image' => (string) ($card['image_src'] ?? ''),
+                    'ingredients' => $ingredientLines,
+                    'steps' => $stepLines,
+                ];
+            }
+            $categories = unique_categories($recipeItems);
+        ?>
+            <div class="toolbar">
+                <input class="search-input" type="search" placeholder="Search recipes…" data-catalog-search aria-label="Search recipes" />
+                <?php if ($categories): ?>
+                    <div class="filter-row" role="group" aria-label="Filter by category">
+                        <button type="button" class="filter-btn is-active" data-filter="all">All</button>
+                        <?php foreach ($categories as $category): ?>
+                            <button type="button" class="filter-btn" data-filter="<?= e(strtolower($category)) ?>"><?= e($category) ?></button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <p class="catalog-count" data-catalog-count data-noun="<?= e($noun) ?>" aria-live="polite"><?= count($recipeItems) ?> <?= e($noun) ?></p>
+            <?php if ($recipeItems === []): ?>
                 <p class="catalog-empty">No recipes yet. Add them from the CMS.</p>
             <?php endif; ?>
-            <div class="catalog-grid">
-                <?php foreach ($cards as $card):
-                    $title = (string) ($card['title'] ?? 'Recipe');
-                    $image = (string) ($card['image_src'] ?? '');
-                    $ingredients = trim((string) ($card['brief'] ?? ''));
-                    $preparation = trim((string) ($card['description'] ?? ''));
-                    // Legacy recipes stored everything in description.
-                    if ($ingredients === '' && $preparation !== '') {
-                        $preparation = $preparation;
-                    }
+            <div class="catalog-grid" data-catalog>
+                <?php foreach ($recipeItems as $item):
+                    $title = (string) $item['title'];
+                    $category = (string) $item['category'];
+                    $image = (string) $item['image'];
+                    $ingredientLines = $item['ingredients'];
+                    $stepLines = $item['steps'];
                     $imgSrc = $image !== '' ? media_url($mediaSection, $image) : '';
+                    $search = strtolower($title . ' ' . $category);
+                    $ingredientsBody = implode("\n", $ingredientLines);
+                    $stepsBody = implode("\n", $stepLines);
                 ?>
-                    <article class="catalog-item">
+                    <article
+                        class="catalog-item"
+                        data-item
+                        data-category="<?= e(strtolower($category)) ?>"
+                        data-search="<?= e($search) ?>"
+                    >
                         <div
                             class="catalog-item__media<?= $imgSrc !== '' ? ' catalog-item__media--zoomable' : '' ?>"
                             <?= $imgSrc !== '' ? lightbox_data_attrs($imgSrc, $title) : '' ?>
@@ -250,29 +280,29 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                             <?php endif; ?>
                         </div>
                         <div class="catalog-item__body">
-                            <span class="catalog-item__meta">Recipe</span>
+                            <span class="catalog-item__meta"><?= e($category !== '' ? $category : 'Recipe') ?></span>
                             <h2 class="catalog-item__title"><?= e($title) ?></h2>
                             <div class="catalog-item__actions">
-                                <?php if ($ingredients !== ''): ?>
+                                <?php if ($ingredientLines !== []): ?>
                                     <button
                                         type="button"
                                         class="catalog-item__action-btn"
                                         data-recipe-modal
                                         data-recipe-title="<?= e($title) ?>"
                                         data-recipe-section="Ingredients"
-                                        data-recipe-body="<?= e($ingredients) ?>"
+                                        data-recipe-body="<?= e($ingredientsBody) ?>"
                                     >Ingredients</button>
                                 <?php else: ?>
                                     <span class="is-disabled">Ingredients</span>
                                 <?php endif; ?>
-                                <?php if ($preparation !== ''): ?>
+                                <?php if ($stepLines !== []): ?>
                                     <button
                                         type="button"
                                         class="catalog-item__action-btn"
                                         data-recipe-modal
                                         data-recipe-title="<?= e($title) ?>"
                                         data-recipe-section="Preparation"
-                                        data-recipe-body="<?= e($preparation) ?>"
+                                        data-recipe-body="<?= e($stepsBody) ?>"
                                     >Preparation</button>
                                 <?php else: ?>
                                     <span class="is-disabled">Preparation</span>
@@ -282,6 +312,7 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                     </article>
                 <?php endforeach; ?>
             </div>
+            <p class="catalog-empty is-hidden" data-catalog-empty>No recipes match that filter.</p>
 
         <?php else: ?>
             <?php

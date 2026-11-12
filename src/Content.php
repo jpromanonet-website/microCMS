@@ -651,4 +651,61 @@ PHP;
         self::$settingsCache = null;
         self::$homeCache = null;
     }
+
+    /**
+     * Recipe ingredients / steps stored as JSON list (legacy: newline text).
+     *
+     * @return list<string>
+     */
+    public static function recipeLinesFromStorage(?string $raw): array
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) {
+            $lines = [];
+            foreach ($decoded as $item) {
+                $line = trim((string) $item);
+                if ($line !== '') {
+                    $lines[] = $line;
+                }
+            }
+            return $lines;
+        }
+
+        $parts = preg_split('/\r\n|\r|\n/', $raw) ?: [];
+        $lines = [];
+        foreach ($parts as $part) {
+            $line = trim((string) $part);
+            if ($line !== '') {
+                $lines[] = $line;
+            }
+        }
+        return $lines;
+    }
+
+    /**
+     * @param list<mixed>|mixed $lines
+     */
+    public static function recipeLinesToStorage(mixed $lines): string
+    {
+        if (!is_array($lines)) {
+            return '';
+        }
+        $clean = [];
+        foreach ($lines as $item) {
+            $line = trim((string) $item);
+            if ($line !== '') {
+                $clean[] = $line;
+            }
+        }
+        if ($clean === []) {
+            return '';
+        }
+        $json = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return is_string($json) ? $json : '';
+    }
 }

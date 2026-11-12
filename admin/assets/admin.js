@@ -82,4 +82,51 @@
     });
     syncName();
   });
+
+  document.querySelectorAll("[data-list-editor]").forEach((editor) => {
+    const rows = editor.querySelector("[data-list-rows]");
+    const addBtn = editor.querySelector("[data-list-add]");
+    if (!rows || !addBtn) return;
+
+    const makeRow = (name, placeholder, value = "") => {
+      const row = document.createElement("div");
+      row.className = "list-editor__row";
+      row.innerHTML =
+        `<input type="text" name="${name}" value="" placeholder="${placeholder}" />` +
+        `<button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>`;
+      row.querySelector("input").value = value;
+      return row;
+    };
+
+    addBtn.addEventListener("click", () => {
+      const name = addBtn.getAttribute("data-list-name") || "items[]";
+      const placeholder = addBtn.getAttribute("data-list-placeholder") || "Item";
+      const row = makeRow(name, placeholder);
+      rows.appendChild(row);
+      row.querySelector("input")?.focus();
+    });
+
+    rows.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-list-remove]");
+      if (!btn) return;
+      const row = btn.closest(".list-editor__row");
+      if (!row) return;
+      const allRows = rows.querySelectorAll(".list-editor__row");
+      if (allRows.length <= 1) {
+        const input = row.querySelector("input");
+        if (input) input.value = "";
+        input?.focus();
+        return;
+      }
+      row.remove();
+    });
+
+    rows.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const input = event.target.closest("input");
+      if (!input) return;
+      event.preventDefault();
+      addBtn.click();
+    });
+  });
 })();

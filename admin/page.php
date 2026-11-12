@@ -132,11 +132,17 @@ cms_layout_start((string) $page['title'], 'pages');
                 $meta = (string) ($card['category'] ?? '');
             } elseif ($type === 'recipe') {
                 $bits = [];
-                if (trim((string) ($card['brief'] ?? '')) !== '') {
-                    $bits[] = 'Ingredients';
+                $cat = trim((string) ($card['category'] ?? ''));
+                if ($cat !== '') {
+                    $bits[] = $cat;
                 }
-                if (trim((string) ($card['description'] ?? '')) !== '') {
-                    $bits[] = 'Preparation';
+                $ing = count(Content::recipeLinesFromStorage((string) ($card['brief'] ?? '')));
+                $steps = count(Content::recipeLinesFromStorage((string) ($card['description'] ?? '')));
+                if ($ing > 0) {
+                    $bits[] = $ing . ' ingredients';
+                }
+                if ($steps > 0) {
+                    $bits[] = $steps . ' steps';
                 }
                 $meta = $bits !== [] ? implode(' · ', $bits) : 'Incomplete';
             }

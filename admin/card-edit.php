@@ -62,6 +62,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $data['image_src'] = '';
     }
 
+    if ($type === 'recipe') {
+        $data['brief'] = Content::recipeLinesToStorage($_POST['ingredients'] ?? []);
+        $data['description'] = Content::recipeLinesToStorage($_POST['steps'] ?? []);
+        $data['category'] = trim((string) ($_POST['category'] ?? ''));
+    }
+
     if (!empty($_FILES['image']['name']) && $type !== 'music' && $type !== 'resume') {
         $upload = cms_handle_upload('image', $mediaSection);
         if ($upload['ok']) {
@@ -175,17 +181,51 @@ cms_layout_start(($cardId ? 'Edit' : 'New') . ' element', 'pages');
                 </label>
                 <p class="full hint">There is one “Kilometers ran” tracker (starts at 0). Exercises are separate cards with their own counts.</p>
 
-            <?php elseif ($type === 'recipe'): ?>
+            <?php elseif ($type === 'recipe'):
+                $ingredientLines = Content::recipeLinesFromStorage((string) ($c['brief'] ?? ''));
+                $stepLines = Content::recipeLinesFromStorage((string) ($c['description'] ?? ''));
+                if ($ingredientLines === []) {
+                    $ingredientLines = [''];
+                }
+                if ($stepLines === []) {
+                    $stepLines = [''];
+                }
+            ?>
                 <label class="full">Recipe name
                     <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
                 </label>
-                <label class="full">Ingredients
-                    <textarea name="brief" rows="8" placeholder="One ingredient per line…"><?= cms_e((string) ($c['brief'] ?? '')) ?></textarea>
+                <label>Category / tag
+                    <input type="text" name="category" value="<?= cms_e((string) ($c['category'] ?? '')) ?>" placeholder="Dessert, Pasta, Meat…" />
                 </label>
-                <label class="full">Preparation
-                    <textarea name="description" rows="10" placeholder="Steps to cook this recipe…"><?= cms_e((string) ($c['description'] ?? '')) ?></textarea>
-                </label>
-                <p class="full hint">Each section opens in its own modal on the site (Ingredients / Preparation).</p>
+                <div class="full list-editor" data-list-editor>
+                    <div class="list-editor__head">
+                        <span class="list-editor__title">Ingredients</span>
+                        <button type="button" class="btn btn--ghost btn--small" data-list-add data-list-name="ingredients[]" data-list-placeholder="Ingredient">+ Add</button>
+                    </div>
+                    <div class="list-editor__rows" data-list-rows>
+                        <?php foreach ($ingredientLines as $line): ?>
+                            <div class="list-editor__row">
+                                <input type="text" name="ingredients[]" value="<?= cms_e($line) ?>" placeholder="Ingredient" />
+                                <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="full list-editor" data-list-editor>
+                    <div class="list-editor__head">
+                        <span class="list-editor__title">Preparation</span>
+                        <button type="button" class="btn btn--ghost btn--small" data-list-add data-list-name="steps[]" data-list-placeholder="Step">+ Add</button>
+                    </div>
+                    <div class="list-editor__rows" data-list-rows>
+                        <?php foreach ($stepLines as $line): ?>
+                            <div class="list-editor__row">
+                                <input type="text" name="steps[]" value="<?= cms_e($line) ?>" placeholder="Step" />
+                                <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <p class="full hint">Add one ingredient or step per row. Empty rows are ignored. On the site, Ingredients and Preparation open in separate modals.</p>
 
             <?php elseif ($type === 'art'): ?>
                 <label class="full">Title
