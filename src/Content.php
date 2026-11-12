@@ -165,6 +165,34 @@ final class Content
         return ['languages', 'podcasts', 'sports', 'cooking'];
     }
 
+    /** Lifestyle pages kept in DB but hidden from CMS counts and public Hobbies. */
+    public static function retiredLifestyleSlugs(): array
+    {
+        return ['art', 'music'];
+    }
+
+    public static function isRetiredLifestyle(string $slug): bool
+    {
+        return in_array($slug, self::retiredLifestyleSlugs(), true);
+    }
+
+    /**
+     * Pages shown in the CMS (Site + active Hobbies). Excludes retired lifestyle pages.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function visibleAdminPages(): array
+    {
+        $out = [];
+        foreach (self::pages() as $page) {
+            if (self::isRetiredLifestyle((string) ($page['slug'] ?? ''))) {
+                continue;
+            }
+            $out[] = $page;
+        }
+        return $out;
+    }
+
     /**
      * Stats for lifestyle pages shown on the home counters.
      *

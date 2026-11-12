@@ -9,10 +9,35 @@ use MicroCMS\Database;
 
 Auth::requireLogin();
 
-$pages = Content::pages();
+$allPages = Content::pages();
+$pages = Content::visibleAdminPages();
 $pdo = Database::pdo();
-$elements = (int) $pdo->query('SELECT COUNT(*) FROM cards')->fetchColumn();
-$withImage = (int) $pdo->query("SELECT COUNT(*) FROM cards WHERE image_src IS NOT NULL AND image_src != ''")->fetchColumn();
+
+$retiredPageIds = [];
+foreach ($allPages as $page) {
+    if (Content::isRetiredLifestyle((string) ($page['slug'] ?? ''))) {
+        $retiredPageIds[] = (int) $page['id'];
+    }
+}
+
+if ($retiredPageIds === []) {
+    $elements = (int) $pdo->query('SELECT COUNT(*) FROM cards')->fetchColumn();
+    $withImage = (int) $pdo->query("SELECT COUNT(*) FROM cards WHERE image_src IS NOT NULL AND image_src != ''")->fetchColumn();
+} else {
+    $placeholders = implode(',', array_fill(0, count($retiredPageIds), '?'));
+    $elStmt = $pdo->prepare("SELECT COUNT(*) FROM cards WHERE page_id NOT IN ($placeholders)");
+    $elStmt->execute($retiredPageIds);
+    $elements = (int) $elStmt->fetchColumn();
+
+    $imgStmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM cards
+         WHERE page_id NOT IN ($placeholders)
+           AND image_src IS NOT NULL AND image_src != ''"
+    );
+    $imgStmt->execute($retiredPageIds);
+    $withImage = (int) $imgStmt->fetchColumn();
+}
+
 $mediaFiles = 0;
 try {
     $mediaFiles = (int) $pdo->query('SELECT COUNT(*) FROM media_files')->fetchColumn();

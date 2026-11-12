@@ -7,8 +7,7 @@ use MicroCMS\Auth;
 use MicroCMS\Content;
 
 Auth::requireLogin();
-$pages = Content::pages();
-$lifestyleSlugs = Content::lifestyleSlugs();
+$pages = Content::visibleAdminPages();
 $hobbySlugs = Content::hobbySlugs();
 $sitePages = [];
 $hobbyPages = [];
@@ -16,10 +15,6 @@ foreach ($pages as $page) {
     $slug = (string) $page['slug'];
     if (in_array($slug, $hobbySlugs, true)) {
         $hobbyPages[] = $page;
-        continue;
-    }
-    // Retired lifestyle pages (art/music) stay hidden from both Site and Hobbies.
-    if (in_array($slug, $lifestyleSlugs, true)) {
         continue;
     }
     $sitePages[] = $page;
