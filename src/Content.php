@@ -166,9 +166,7 @@ final class Content
     public static function lifestyleStats(): array
     {
         $defs = [
-            'art' => ['label' => 'Artwork to show', 'tone' => 'rose', 'mode' => 'count'],
             'languages' => ['label' => 'Languages that I\'m speaking', 'tone' => 'cyan', 'mode' => 'languages'],
-            'music' => ['label' => 'Songs published', 'tone' => 'violet', 'mode' => 'count'],
             'podcasts' => ['label' => 'Chapters recorded', 'tone' => 'indigo', 'mode' => 'count'],
             'sports' => ['label' => 'Km ran', 'tone' => 'orange', 'mode' => 'km'],
             'cooking' => ['label' => 'Recipes cooked', 'tone' => 'mint', 'mode' => 'count'],
@@ -262,9 +260,7 @@ final class Content
 
         $moreChildren = [];
         foreach ([
-            'art' => 'My Art',
             'languages' => 'Languages',
-            'music' => 'My Music',
             'podcasts' => 'Podcasts',
             'sports' => 'Sports',
             'cooking' => 'Cooking',
