@@ -232,7 +232,12 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                 <?php foreach ($cards as $card):
                     $title = (string) ($card['title'] ?? 'Recipe');
                     $image = (string) ($card['image_src'] ?? '');
-                    $recipe = (string) (($card['description'] ?? '') ?: ($card['brief'] ?? ''));
+                    $ingredients = trim((string) ($card['brief'] ?? ''));
+                    $preparation = trim((string) ($card['description'] ?? ''));
+                    // Legacy recipes stored everything in description.
+                    if ($ingredients === '' && $preparation !== '') {
+                        $preparation = $preparation;
+                    }
                     $imgSrc = $image !== '' ? media_url($mediaSection, $image) : '';
                 ?>
                     <article class="catalog-item">
@@ -247,9 +252,32 @@ $mediaSection = $pageSlug === 'portfolio' ? 'portfolio' : $pageSlug;
                         <div class="catalog-item__body">
                             <span class="catalog-item__meta">Recipe</span>
                             <h2 class="catalog-item__title"><?= e($title) ?></h2>
-                            <?php if ($recipe !== ''): ?>
-                                <div class="recipe-card__text"><?= nl2br(e($recipe)) ?></div>
-                            <?php endif; ?>
+                            <div class="catalog-item__actions">
+                                <?php if ($ingredients !== ''): ?>
+                                    <button
+                                        type="button"
+                                        class="catalog-item__action-btn"
+                                        data-recipe-modal
+                                        data-recipe-title="<?= e($title) ?>"
+                                        data-recipe-section="Ingredients"
+                                        data-recipe-body="<?= e($ingredients) ?>"
+                                    >Ingredients</button>
+                                <?php else: ?>
+                                    <span class="is-disabled">Ingredients</span>
+                                <?php endif; ?>
+                                <?php if ($preparation !== ''): ?>
+                                    <button
+                                        type="button"
+                                        class="catalog-item__action-btn"
+                                        data-recipe-modal
+                                        data-recipe-title="<?= e($title) ?>"
+                                        data-recipe-section="Preparation"
+                                        data-recipe-body="<?= e($preparation) ?>"
+                                    >Preparation</button>
+                                <?php else: ?>
+                                    <span class="is-disabled">Preparation</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </article>
                 <?php endforeach; ?>

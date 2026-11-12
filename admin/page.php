@@ -130,6 +130,15 @@ cms_layout_start((string) $page['title'], 'pages');
                 $meta = (string) ($card['url'] ?? '');
             } elseif ($type === 'language') {
                 $meta = (string) ($card['category'] ?? '');
+            } elseif ($type === 'recipe') {
+                $bits = [];
+                if (trim((string) ($card['brief'] ?? '')) !== '') {
+                    $bits[] = 'Ingredients';
+                }
+                if (trim((string) ($card['description'] ?? '')) !== '') {
+                    $bits[] = 'Preparation';
+                }
+                $meta = $bits !== [] ? implode(' · ', $bits) : 'Incomplete';
             }
         ?>
             <tr>

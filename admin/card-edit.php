@@ -179,9 +179,13 @@ cms_layout_start(($cardId ? 'Edit' : 'New') . ' element', 'pages');
                 <label class="full">Recipe name
                     <input type="text" name="title" value="<?= cms_e((string) $c['title']) ?>" required />
                 </label>
-                <label class="full">Recipe
-                    <textarea name="description" rows="10" placeholder="Ingredients and steps…"><?= cms_e((string) ($c['description'] ?? $c['brief'] ?? '')) ?></textarea>
+                <label class="full">Ingredients
+                    <textarea name="brief" rows="8" placeholder="One ingredient per line…"><?= cms_e((string) ($c['brief'] ?? '')) ?></textarea>
                 </label>
+                <label class="full">Preparation
+                    <textarea name="description" rows="10" placeholder="Steps to cook this recipe…"><?= cms_e((string) ($c['description'] ?? '')) ?></textarea>
+                </label>
+                <p class="full hint">Each section opens in its own modal on the site (Ingredients / Preparation).</p>
 
             <?php elseif ($type === 'art'): ?>
                 <label class="full">Title
