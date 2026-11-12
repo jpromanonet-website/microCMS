@@ -155,7 +155,14 @@ final class Content
     /** @return list<string> */
     public static function lifestyleSlugs(): array
     {
+        // Includes retired pages (art/music) so they stay out of the main site nav.
         return ['art', 'languages', 'music', 'podcasts', 'sports', 'cooking'];
+    }
+
+    /** Active Hobbies menu + CMS Hobbies section (excludes retired art/music). */
+    public static function hobbySlugs(): array
+    {
+        return ['languages', 'podcasts', 'sports', 'cooking'];
     }
 
     /**
@@ -259,19 +266,21 @@ final class Content
         }
 
         $moreChildren = [];
-        foreach ([
+        $hobbyLabels = [
             'languages' => 'Languages',
             'podcasts' => 'Podcasts',
             'sports' => 'Sports',
             'cooking' => 'Cooking',
-        ] as $slug => $label) {
-            if (self::pageBySlug($slug)) {
-                $moreChildren[] = [
-                    'label' => $label,
-                    'path' => '/' . $slug . '/',
-                    'key' => $slug,
-                ];
+        ];
+        foreach (self::hobbySlugs() as $slug) {
+            if (!self::pageBySlug($slug)) {
+                continue;
             }
+            $moreChildren[] = [
+                'label' => $hobbyLabels[$slug] ?? ucfirst($slug),
+                'path' => '/' . $slug . '/',
+                'key' => $slug,
+            ];
         }
         if ($moreChildren !== []) {
             $items[] = [

@@ -9,14 +9,20 @@ use MicroCMS\Content;
 Auth::requireLogin();
 $pages = Content::pages();
 $lifestyleSlugs = Content::lifestyleSlugs();
+$hobbySlugs = Content::hobbySlugs();
 $sitePages = [];
 $hobbyPages = [];
 foreach ($pages as $page) {
-    if (in_array((string) $page['slug'], $lifestyleSlugs, true)) {
+    $slug = (string) $page['slug'];
+    if (in_array($slug, $hobbySlugs, true)) {
         $hobbyPages[] = $page;
-    } else {
-        $sitePages[] = $page;
+        continue;
     }
+    // Retired lifestyle pages (art/music) stay hidden from both Site and Hobbies.
+    if (in_array($slug, $lifestyleSlugs, true)) {
+        continue;
+    }
+    $sitePages[] = $page;
 }
 
 cms_layout_start('Pages', 'pages');
@@ -75,7 +81,7 @@ $renderPageRows = static function (array $list): void {
 <?php if ($hobbyPages !== []): ?>
 <section class="panel">
     <h2 class="panel-subtitle">Hobbies</h2>
-    <p class="lead" style="margin-top:0">Art, languages, music, sports, and cooking — edited here, shown under the Hobbies menu on the site.</p>
+    <p class="lead" style="margin-top:0">Languages, podcasts, sports, and cooking — edited here, shown under the Hobbies menu on the site.</p>
     <div class="table-scroll">
     <table>
         <thead>
