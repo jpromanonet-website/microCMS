@@ -403,11 +403,15 @@ final class Content
                     'description' => (string) ($card['description'] ?? ''),
                 ];
             default:
+                $created = trim((string) ($card['created_at'] ?? ''));
+                $timestamp = $created !== '' ? (strtotime($created) ?: 0) : 0;
                 return [
                     'title' => $card['title'],
                     'imageSrc' => $card['image_src'],
                     'url' => $card['url'] !== '' ? $card['url'] : '#',
                     'category' => $card['category'],
+                    'timestamp' => $timestamp,
+                    'pubDate' => $timestamp > 0 ? gmdate('D, d M Y H:i:s', $timestamp) . ' GMT' : '',
                 ];
         }
     }
