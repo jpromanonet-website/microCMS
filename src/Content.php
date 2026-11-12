@@ -681,6 +681,34 @@ PHP;
     }
 
     /**
+     * Delete Writing CMS cards that are now loaded automatically (HomeSpot / Soup IT).
+     */
+    public static function purgeWritingAutoPublisherCards(): int
+    {
+        $page = self::pageBySlug('writing');
+        if (!$page) {
+            return 0;
+        }
+        $pageId = (int) $page['id'];
+        $cards = self::cardsForPage($pageId);
+        $deleted = 0;
+        foreach ($cards as $card) {
+            $category = (string) ($card['category'] ?? '');
+            $url = (string) ($card['url'] ?? '');
+            $cat = strtolower(trim($category));
+            $isAuto = in_array($cat, ['homespot', 'soup it', 'soupit'], true)
+                || preg_match('#homespot\.com\.ar#i', $url) === 1
+                || preg_match('#soupit\.ar#i', $url) === 1;
+            if (!$isAuto) {
+                continue;
+            }
+            self::deleteCard((int) $card['id']);
+            $deleted++;
+        }
+        return $deleted;
+    }
+
+    /**
      * Recipe ingredients / steps stored as JSON list (legacy: newline text).
      *
      * @return list<string>
