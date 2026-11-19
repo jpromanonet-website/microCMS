@@ -269,7 +269,7 @@ cms_layout_start('Home', 'home');
                     </thead>
                     <tbody data-list-rows>
                         <?php foreach ($nowEntries as $entry): ?>
-                            <tr class="list-editor__row">
+                            <tr>
                                 <td><input type="text" name="signal_role[now][]" value="<?= cms_e((string) ($entry['role'] ?? '')) ?>" placeholder="Engineering Manager" /></td>
                                 <td><input type="text" name="signal_name[now][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Company" /></td>
                                 <td><input type="url" name="signal_url[now][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." /></td>
@@ -282,7 +282,7 @@ cms_layout_start('Home', 'home');
                 </table>
             </div>
             <template data-list-template>
-                <tr class="list-editor__row">
+                <tr>
                     <td><input type="text" name="signal_role[now][]" value="" placeholder="Engineering Manager" /></td>
                     <td><input type="text" name="signal_name[now][]" value="" placeholder="Company" /></td>
                     <td><input type="url" name="signal_url[now][]" value="" placeholder="https://..." /></td>
@@ -309,7 +309,7 @@ cms_layout_start('Home', 'home');
                     </thead>
                     <tbody data-list-rows>
                         <?php foreach ($buildingEntries as $entry): ?>
-                            <tr class="list-editor__row">
+                            <tr>
                                 <td><input type="text" name="signal_name[building][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Project" /></td>
                                 <td><input type="url" name="signal_url[building][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." /></td>
                                 <td class="signal-table__actions">
@@ -321,7 +321,7 @@ cms_layout_start('Home', 'home');
                 </table>
             </div>
             <template data-list-template>
-                <tr class="list-editor__row">
+                <tr>
                     <td><input type="text" name="signal_name[building][]" value="" placeholder="Project" /></td>
                     <td><input type="url" name="signal_url[building][]" value="" placeholder="https://..." /></td>
                     <td class="signal-table__actions">
