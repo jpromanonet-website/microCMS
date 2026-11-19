@@ -190,7 +190,7 @@ final class Seeder
                     [
                         'label' => 'Now',
                         'entries' => [
-                            ['role' => 'Engineering Manager', 'name' => 'Hybrid Bee Technology', 'url' => 'https://hybridbee.tech'],
+                            ['role' => 'Engineering Manager', 'name' => 'Hybrid Bee Technology', 'url' => 'https://hybridbeetechnology.com/'],
                             ['role' => 'CEO', 'name' => 'Soup IT', 'url' => 'https://soupit.ar'],
                             ['role' => 'Game Master', 'name' => 'Conexión Berlín', 'url' => ''],
                         ],
