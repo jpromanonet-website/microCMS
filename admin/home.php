@@ -37,17 +37,37 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $roles = $_POST['signal_role'] ?? [];
         $names = $_POST['signal_name'] ?? [];
         $urls = $_POST['signal_url'] ?? [];
+        $values = $_POST['signal_value'] ?? [];
         $items = [];
         if (is_array($labels)) {
             foreach ($labels as $i => $label) {
                 $label = trim((string) $label);
+                $kind = strtolower($label);
+
+                // Base stays a single plain value, like before.
+                if ($kind === 'base') {
+                    $value = trim((string) ($values[$i] ?? ''));
+                    if ($label === '' && $value === '') {
+                        continue;
+                    }
+                    $items[] = [
+                        'label' => $label !== '' ? $label : 'Base',
+                        'value' => $value,
+                        'entries' => $value !== ''
+                            ? [['role' => '', 'name' => $value, 'url' => '']]
+                            : [],
+                    ];
+                    continue;
+                }
+
                 $groupRoles = is_array($roles[$i] ?? null) ? $roles[$i] : [];
                 $groupNames = is_array($names[$i] ?? null) ? $names[$i] : [];
                 $groupUrls = is_array($urls[$i] ?? null) ? $urls[$i] : [];
                 $max = max(count($groupRoles), count($groupNames), count($groupUrls));
                 $entries = [];
+                $allowRole = $kind === 'now';
                 for ($j = 0; $j < $max; $j++) {
-                    $role = trim((string) ($groupRoles[$j] ?? ''));
+                    $role = $allowRole ? trim((string) ($groupRoles[$j] ?? '')) : '';
                     $name = trim((string) ($groupNames[$j] ?? ''));
                     $url = trim((string) ($groupUrls[$j] ?? ''));
                     if ($role === '' && $name === '' && $url === '') {
@@ -112,6 +132,7 @@ $contact = $blocks['contact'] ?? [];
 /** @param array<string,mixed> $item */
 $normalizeSignalForAdmin = static function (array $item): array {
     $label = trim((string) ($item['label'] ?? ''));
+    $kind = strtolower($label);
     $entries = [];
     if (isset($item['entries']) && is_array($item['entries'])) {
         foreach ($item['entries'] as $entry) {
@@ -127,6 +148,27 @@ $normalizeSignalForAdmin = static function (array $item): array {
             $entries[] = ['role' => $role, 'name' => $name, 'url' => $url];
         }
     }
+
+    if ($kind === 'base') {
+        $value = trim((string) ($item['value'] ?? ''));
+        if ($value === '' && $entries !== []) {
+            $parts = [];
+            foreach ($entries as $entry) {
+                $name = trim((string) ($entry['name'] ?? ''));
+                if ($name !== '') {
+                    $parts[] = $name;
+                }
+            }
+            $value = implode(', ', $parts);
+        }
+        return [
+            'label' => $label !== '' ? $label : 'Base',
+            'mode' => 'simple',
+            'value' => $value,
+            'entries' => [],
+        ];
+    }
+
     if ($entries === []) {
         $value = trim((string) ($item['value'] ?? ''));
         if ($value !== '') {
@@ -138,7 +180,7 @@ $normalizeSignalForAdmin = static function (array $item): array {
                 }
                 $role = '';
                 $name = $part;
-                if (preg_match('/^(.+?)\s+at\s+(.+)$/iu', $part, $m)) {
+                if ($kind === 'now' && preg_match('/^(.+?)\s+at\s+(.+)$/iu', $part, $m)) {
                     $role = trim($m[1]);
                     $name = trim($m[2]);
                 }
@@ -149,7 +191,12 @@ $normalizeSignalForAdmin = static function (array $item): array {
     if ($entries === []) {
         $entries[] = ['role' => '', 'name' => '', 'url' => ''];
     }
-    return ['label' => $label, 'entries' => $entries];
+    return [
+        'label' => $label,
+        'mode' => $kind === 'now' ? 'work' : 'project',
+        'value' => '',
+        'entries' => $entries,
+    ];
 };
 
 $signalItems = [];
@@ -159,9 +206,17 @@ foreach (($signals['items'] ?? []) as $item) {
     }
 }
 while (count($signalItems) < 3) {
+    $defaults = [
+        ['label' => 'Now', 'mode' => 'work'],
+        ['label' => 'Building', 'mode' => 'project'],
+        ['label' => 'Base', 'mode' => 'simple'],
+    ];
+    $fallback = $defaults[count($signalItems)] ?? ['label' => '', 'mode' => 'project'];
     $signalItems[] = [
-        'label' => ['Now', 'Building', 'Base'][count($signalItems)] ?? '',
-        'entries' => [['role' => '', 'name' => '', 'url' => '']],
+        'label' => $fallback['label'],
+        'mode' => $fallback['mode'],
+        'value' => $fallback['mode'] === 'simple' ? 'Buenos Aires, Argentina' : '',
+        'entries' => $fallback['mode'] === 'simple' ? [] : [['role' => '', 'name' => '', 'url' => '']],
     ];
 }
 
@@ -221,44 +276,66 @@ cms_layout_start('Home', 'home');
 
 <section class="panel" id="signals">
     <h2>Signals (Now / Building / Base)</h2>
-    <p class="hint" style="margin-top:-0.35rem">Add rows one by one. For work use Role + Name + optional URL — the site renders <em>Role at Name</em>.</p>
+    <p class="hint" style="margin-top:-0.35rem">Now uses Role + Name + URL. Building is Name + URL only. Base stays a single value.</p>
     <form method="post">
         <input type="hidden" name="csrf" value="<?= cms_e(Auth::csrfToken()) ?>" />
         <input type="hidden" name="block" value="signals" />
-        <?php foreach ($signalItems as $gi => $item): ?>
-            <div class="list-editor" data-list-editor style="margin-top:0.85rem">
-                <div class="list-editor__head">
-                    <label class="list-editor__title" style="display:grid;gap:0.25rem;flex:1">
-                        Group label
-                        <input type="text" name="signal_label[<?= (int) $gi ?>]" value="<?= cms_e((string) ($item['label'] ?? '')) ?>" placeholder="Now / Building / Base" />
-                    </label>
-                    <button
-                        type="button"
-                        class="btn btn--ghost btn--small"
-                        data-list-add
-                        data-list-name="signal"
-                        aria-label="Add entry"
-                    >+ Add</button>
-                </div>
-                <template data-list-template>
-                    <div class="list-editor__row list-editor__row--signal">
-                        <input type="text" name="signal_role[<?= (int) $gi ?>][]" value="" placeholder="Role (optional)" />
-                        <input type="text" name="signal_name[<?= (int) $gi ?>][]" value="" placeholder="Name" />
-                        <input type="url" name="signal_url[<?= (int) $gi ?>][]" value="" placeholder="https://..." />
-                        <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+        <?php foreach ($signalItems as $gi => $item):
+            $mode = (string) ($item['mode'] ?? 'project');
+        ?>
+            <?php if ($mode === 'simple'): ?>
+                <div class="list-editor" style="margin-top:0.85rem">
+                    <div class="form-grid">
+                        <label>Group label
+                            <input type="text" name="signal_label[<?= (int) $gi ?>]" value="<?= cms_e((string) ($item['label'] ?? 'Base')) ?>" />
+                        </label>
+                        <label class="full">Value
+                            <input type="text" name="signal_value[<?= (int) $gi ?>]" value="<?= cms_e((string) ($item['value'] ?? '')) ?>" placeholder="Buenos Aires, Argentina" />
+                        </label>
                     </div>
-                </template>
-                <div class="list-editor__rows" data-list-rows>
-                    <?php foreach (($item['entries'] ?? []) as $entry): ?>
-                        <div class="list-editor__row list-editor__row--signal">
-                            <input type="text" name="signal_role[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['role'] ?? '')) ?>" placeholder="Role (optional)" />
-                            <input type="text" name="signal_name[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Name" />
-                            <input type="url" name="signal_url[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." />
+                </div>
+            <?php else:
+                $withRole = $mode === 'work';
+                $rowClass = $withRole ? 'list-editor__row list-editor__row--signal' : 'list-editor__row list-editor__row--signal-lite';
+            ?>
+                <div class="list-editor" data-list-editor style="margin-top:0.85rem">
+                    <div class="list-editor__head">
+                        <label class="list-editor__title" style="display:grid;gap:0.25rem;flex:1">
+                            Group label
+                            <input type="text" name="signal_label[<?= (int) $gi ?>]" value="<?= cms_e((string) ($item['label'] ?? '')) ?>" placeholder="Now / Building" />
+                        </label>
+                        <button
+                            type="button"
+                            class="btn btn--ghost btn--small"
+                            data-list-add
+                            data-list-name="signal"
+                            aria-label="Add entry"
+                        >+ Add</button>
+                    </div>
+                    <template data-list-template>
+                        <div class="<?= cms_e($rowClass) ?>">
+                            <?php if ($withRole): ?>
+                                <input type="text" name="signal_role[<?= (int) $gi ?>][]" value="" placeholder="Role" />
+                            <?php endif; ?>
+                            <input type="text" name="signal_name[<?= (int) $gi ?>][]" value="" placeholder="Name" />
+                            <input type="url" name="signal_url[<?= (int) $gi ?>][]" value="" placeholder="https://..." />
                             <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
                         </div>
-                    <?php endforeach; ?>
+                    </template>
+                    <div class="list-editor__rows" data-list-rows>
+                        <?php foreach (($item['entries'] ?? []) as $entry): ?>
+                            <div class="<?= cms_e($rowClass) ?>">
+                                <?php if ($withRole): ?>
+                                    <input type="text" name="signal_role[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['role'] ?? '')) ?>" placeholder="Role" />
+                                <?php endif; ?>
+                                <input type="text" name="signal_name[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Name" />
+                                <input type="url" name="signal_url[<?= (int) $gi ?>][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." />
+                                <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         <?php endforeach; ?>
         <div class="actions"><button class="btn btn--primary" type="submit">Save signals</button></div>
     </form>

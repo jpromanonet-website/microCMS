@@ -204,6 +204,7 @@ final class Seeder
                     ],
                     [
                         'label' => 'Base',
+                        'value' => 'Buenos Aires, Argentina',
                         'entries' => [
                             ['role' => '', 'name' => 'Buenos Aires, Argentina', 'url' => ''],
                         ],

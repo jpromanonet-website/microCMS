@@ -606,20 +606,32 @@ textarea { min-height: 110px; resize: vertical; }
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.2fr) auto;
 }
 
+.list-editor__row--signal-lite {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) auto;
+}
+
 @media (max-width: 820px) {
-  .list-editor__row--signal {
+  .list-editor__row--signal,
+  .list-editor__row--signal-lite {
     grid-template-columns: 1fr auto;
   }
 
   .list-editor__row--signal input:nth-child(1),
   .list-editor__row--signal input:nth-child(2),
-  .list-editor__row--signal input:nth-child(3) {
+  .list-editor__row--signal input:nth-child(3),
+  .list-editor__row--signal-lite input:nth-child(1),
+  .list-editor__row--signal-lite input:nth-child(2) {
     grid-column: 1;
   }
 
   .list-editor__row--signal .list-editor__remove {
     grid-column: 2;
     grid-row: 1 / span 3;
+  }
+
+  .list-editor__row--signal-lite .list-editor__remove {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 }
 
