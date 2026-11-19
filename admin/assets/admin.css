@@ -569,6 +569,66 @@ textarea { min-height: 110px; resize: vertical; }
   .icon-btn { width: 36px; height: 36px; }
 }
 
+.signal-admin {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.signal-panel {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel) 94%, var(--accent-soft));
+}
+
+.signal-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.signal-panel__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.signal-panel__hint {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.signal-panel__cols {
+  display: grid;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0 0.1rem;
+}
+
+.signal-panel__cols--work {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.2fr) 36px;
+}
+
+.signal-panel__cols--project {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) 36px;
+}
+
+@media (max-width: 820px) {
+  .signal-panel__cols {
+    display: none;
+  }
+}
+
 .list-editor {
   display: grid;
   gap: 0.55rem;
