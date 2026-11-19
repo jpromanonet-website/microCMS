@@ -89,6 +89,10 @@
     if (!rows || !addBtn) return;
 
     const makeRow = (name, placeholder, value = "") => {
+      const template = editor.querySelector("template[data-list-template]");
+      if (template?.content?.firstElementChild) {
+        return template.content.firstElementChild.cloneNode(true);
+      }
       const row = document.createElement("div");
       row.className = "list-editor__row";
       row.innerHTML =
@@ -103,7 +107,8 @@
       const placeholder = addBtn.getAttribute("data-list-placeholder") || "Item";
       const row = makeRow(name, placeholder);
       rows.appendChild(row);
-      row.querySelector("input")?.focus();
+      const focusable = row.querySelector("input, textarea, select");
+      focusable?.focus();
     });
 
     rows.addEventListener("click", (event) => {
@@ -113,9 +118,10 @@
       if (!row) return;
       const allRows = rows.querySelectorAll(".list-editor__row");
       if (allRows.length <= 1) {
-        const input = row.querySelector("input");
-        if (input) input.value = "";
-        input?.focus();
+        row.querySelectorAll("input, textarea").forEach((input) => {
+          input.value = "";
+        });
+        row.querySelector("input, textarea")?.focus();
         return;
       }
       row.remove();

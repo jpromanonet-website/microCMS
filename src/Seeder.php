@@ -187,9 +187,27 @@ final class Seeder
             ],
             'signals' => [
                 'items' => [
-                    ['label' => 'Now', 'value' => 'Engineering Manager · Hybrid Bee Technology'],
-                    ['label' => 'Building', 'value' => 'Soup IT, Puestito, Mate Gestión and more'],
-                    ['label' => 'Base', 'value' => 'Buenos Aires, Argentina'],
+                    [
+                        'label' => 'Now',
+                        'entries' => [
+                            ['role' => 'Engineering Manager', 'name' => 'Hybrid Bee Technology', 'url' => 'https://hybridbee.tech'],
+                            ['role' => 'CEO', 'name' => 'Soup IT', 'url' => 'https://soupit.ar'],
+                            ['role' => 'Game Master', 'name' => 'Conexión Berlín', 'url' => ''],
+                        ],
+                    ],
+                    [
+                        'label' => 'Building',
+                        'entries' => [
+                            ['role' => '', 'name' => 'Soup IT', 'url' => 'https://soupit.ar'],
+                            ['role' => '', 'name' => 'HomeSpot', 'url' => 'https://homespot.com.ar'],
+                        ],
+                    ],
+                    [
+                        'label' => 'Base',
+                        'entries' => [
+                            ['role' => '', 'name' => 'Buenos Aires, Argentina', 'url' => ''],
+                        ],
+                    ],
                 ],
             ],
             'skills' => [
