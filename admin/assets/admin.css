@@ -571,62 +571,81 @@ textarea { min-height: 110px; resize: vertical; }
 
 .signal-admin {
   display: grid;
-  gap: 0.9rem;
+  gap: 1.25rem;
 }
 
-.signal-panel {
+.signal-section {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--panel) 94%, var(--accent-soft));
+  gap: 0.55rem;
 }
 
-.signal-panel__head {
+.signal-section__head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.signal-panel__title {
+.signal-section__head h3 {
   margin: 0;
   font-size: 1rem;
-  font-weight: 750;
-  letter-spacing: 0.01em;
 }
 
-.signal-panel__hint {
-  margin: 0.15rem 0 0;
-  color: var(--muted);
-  font-size: 0.82rem;
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
 }
 
-.signal-panel__cols {
-  display: grid;
-  gap: 0.4rem;
-  align-items: center;
-  color: var(--muted);
+.signal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.signal-table th,
+.signal-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.signal-table thead th {
   font-size: 0.72rem;
-  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0 0.1rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 88%, var(--accent-soft));
 }
 
-.signal-panel__cols--work {
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.2fr) 36px;
+.signal-table tbody tr:last-child th,
+.signal-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-.signal-panel__cols--project {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) 36px;
+.signal-table input {
+  width: 100%;
+  margin: 0;
 }
 
-@media (max-width: 820px) {
-  .signal-panel__cols {
-    display: none;
-  }
+.signal-table__actions {
+  width: 52px;
+  text-align: center;
+}
+
+.signal-base {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.signal-base span {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .list-editor {

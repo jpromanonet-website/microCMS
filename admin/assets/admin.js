@@ -114,9 +114,9 @@
     rows.addEventListener("click", (event) => {
       const btn = event.target.closest("[data-list-remove]");
       if (!btn) return;
-      const row = btn.closest(".list-editor__row");
+      const row = btn.closest(".list-editor__row, tr");
       if (!row) return;
-      const allRows = rows.querySelectorAll(".list-editor__row");
+      const allRows = rows.querySelectorAll(".list-editor__row, tr");
       if (allRows.length <= 1) {
         row.querySelectorAll("input, textarea").forEach((input) => {
           input.value = "";

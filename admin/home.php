@@ -247,79 +247,98 @@ cms_layout_start('Home', 'home');
 
 <section class="panel" id="signals">
     <h2>Signals</h2>
-    <p class="hint" style="margin-top:-0.35rem">Edit the three home blocks. Now renders as <em>Role at Name</em>.</p>
+    <p class="hint" style="margin-top:-0.35rem">Home page list. Now shows as <em>Role at Name</em>.</p>
     <form method="post" class="signal-admin">
         <input type="hidden" name="csrf" value="<?= cms_e(Auth::csrfToken()) ?>" />
         <input type="hidden" name="block" value="signals" />
 
-        <div class="signal-panel" data-list-editor>
-            <div class="signal-panel__head">
-                <div>
-                    <h3 class="signal-panel__title">Now</h3>
-                    <p class="signal-panel__hint">Current roles — one row per job</p>
-                </div>
-                <button type="button" class="btn btn--ghost btn--small" data-list-add aria-label="Add role">+ Add</button>
+        <div class="signal-section" data-list-editor>
+            <div class="signal-section__head">
+                <h3>Now</h3>
+                <button type="button" class="btn btn--ghost btn--small" data-list-add>+ Add</button>
             </div>
-            <div class="signal-panel__cols signal-panel__cols--work" aria-hidden="true">
-                <span>Role</span><span>Name</span><span>URL</span><span></span>
-            </div>
-            <template data-list-template>
-                <div class="list-editor__row list-editor__row--signal">
-                    <input type="text" name="signal_role[now][]" value="" placeholder="Engineering Manager" />
-                    <input type="text" name="signal_name[now][]" value="" placeholder="Company" />
-                    <input type="url" name="signal_url[now][]" value="" placeholder="https://..." />
-                    <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
-                </div>
-            </template>
-            <div class="list-editor__rows" data-list-rows>
-                <?php foreach ($nowEntries as $entry): ?>
-                    <div class="list-editor__row list-editor__row--signal">
-                        <input type="text" name="signal_role[now][]" value="<?= cms_e((string) ($entry['role'] ?? '')) ?>" placeholder="Engineering Manager" />
-                        <input type="text" name="signal_name[now][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Company" />
-                        <input type="url" name="signal_url[now][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." />
-                        <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-
-        <div class="signal-panel" data-list-editor>
-            <div class="signal-panel__head">
-                <div>
-                    <h3 class="signal-panel__title">Building</h3>
-                    <p class="signal-panel__hint">Projects and ventures — name + link</p>
-                </div>
-                <button type="button" class="btn btn--ghost btn--small" data-list-add aria-label="Add project">+ Add</button>
-            </div>
-            <div class="signal-panel__cols signal-panel__cols--project" aria-hidden="true">
-                <span>Name</span><span>URL</span><span></span>
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Name</th>
+                            <th>URL</th>
+                            <th class="signal-table__actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody data-list-rows>
+                        <?php foreach ($nowEntries as $entry): ?>
+                            <tr class="list-editor__row">
+                                <td><input type="text" name="signal_role[now][]" value="<?= cms_e((string) ($entry['role'] ?? '')) ?>" placeholder="Engineering Manager" /></td>
+                                <td><input type="text" name="signal_name[now][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Company" /></td>
+                                <td><input type="url" name="signal_url[now][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." /></td>
+                                <td class="signal-table__actions">
+                                    <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
             <template data-list-template>
-                <div class="list-editor__row list-editor__row--signal-lite">
-                    <input type="text" name="signal_name[building][]" value="" placeholder="Project" />
-                    <input type="url" name="signal_url[building][]" value="" placeholder="https://..." />
-                    <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
-                </div>
-            </template>
-            <div class="list-editor__rows" data-list-rows>
-                <?php foreach ($buildingEntries as $entry): ?>
-                    <div class="list-editor__row list-editor__row--signal-lite">
-                        <input type="text" name="signal_name[building][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Project" />
-                        <input type="url" name="signal_url[building][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." />
+                <tr class="list-editor__row">
+                    <td><input type="text" name="signal_role[now][]" value="" placeholder="Engineering Manager" /></td>
+                    <td><input type="text" name="signal_name[now][]" value="" placeholder="Company" /></td>
+                    <td><input type="url" name="signal_url[now][]" value="" placeholder="https://..." /></td>
+                    <td class="signal-table__actions">
                         <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+                    </td>
+                </tr>
+            </template>
         </div>
 
-        <div class="signal-panel">
-            <div class="signal-panel__head">
-                <div>
-                    <h3 class="signal-panel__title">Base</h3>
-                    <p class="signal-panel__hint">Location shown on the home page</p>
-                </div>
+        <div class="signal-section" data-list-editor>
+            <div class="signal-section__head">
+                <h3>Building</h3>
+                <button type="button" class="btn btn--ghost btn--small" data-list-add>+ Add</button>
             </div>
-            <input type="text" name="signal_base" value="<?= cms_e($baseValue) ?>" placeholder="Buenos Aires, Argentina" />
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>URL</th>
+                            <th class="signal-table__actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody data-list-rows>
+                        <?php foreach ($buildingEntries as $entry): ?>
+                            <tr class="list-editor__row">
+                                <td><input type="text" name="signal_name[building][]" value="<?= cms_e((string) ($entry['name'] ?? '')) ?>" placeholder="Project" /></td>
+                                <td><input type="url" name="signal_url[building][]" value="<?= cms_e((string) ($entry['url'] ?? '')) ?>" placeholder="https://..." /></td>
+                                <td class="signal-table__actions">
+                                    <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <template data-list-template>
+                <tr class="list-editor__row">
+                    <td><input type="text" name="signal_name[building][]" value="" placeholder="Project" /></td>
+                    <td><input type="url" name="signal_url[building][]" value="" placeholder="https://..." /></td>
+                    <td class="signal-table__actions">
+                        <button type="button" class="list-editor__remove" data-list-remove aria-label="Remove">&times;</button>
+                    </td>
+                </tr>
+            </template>
+        </div>
+
+        <div class="signal-section">
+            <div class="signal-section__head">
+                <h3>Base</h3>
+            </div>
+            <label class="signal-base">
+                <span>Location</span>
+                <input type="text" name="signal_base" value="<?= cms_e($baseValue) ?>" placeholder="Buenos Aires, Argentina" />
+            </label>
         </div>
 
         <div class="actions"><button class="btn btn--primary" type="submit">Save signals</button></div>
